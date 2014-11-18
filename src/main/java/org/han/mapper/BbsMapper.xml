@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.han.mapper.BbsMapper">
+
+<select id="list" parameterType="org.han.mapper.BbsMapper" resultType="org.han.vo.BbsVO">
+<![CDATA[
+select
+bno,
+(case when sysdate - regdate < 1 then '\"new\"' end)||title||(case when rcount = 0 then ' ' when rcount>0 then '['||rcount||']' end) title,
+userid, regdate, vcount, cnt 
+from 
+(select
+rownum rn, bno, title, userid, regdate, vcount, rcount, count(rownum) over() cnt
+from
+(select
+/*+index_desc(tbl_bbs pk_bbs)*/bno, title, userid, regdate, vcount, rcount
+from
+tbl_bbs
+]]>
+${sql}
+<![CDATA[
+)
+where
+bno>0 and rownum<=(ceil(#{page}/5)*50)+1)
+where
+rn > (#{page}-1)*10 and rn<=(#{page}*10)
+]]>
+</select>
+</mapper>
